@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading.Channels;
 
 namespace AsyncSprint
 {
@@ -14,22 +12,24 @@ namespace AsyncSprint
 
             List<string> story = "Mary had a little lamb, its fleece was white as snow.".Split(' ').ToList();
 
-            performCalculations(dataList);
+            readStory(story);
+            await performCalculations(dataList);
             //await printConsole();
 
-            await readStory(story);
-
+            //await readStory(story);
+            //Thread.Sleep(5000);
         }
 
         static async Task readStory(List<string> story)
         {
-            List<Task> taskList = [];
-            foreach (string word in story)
+            var task = Task.Run(async () =>
             {
-                taskList.Add(Task.Run(async () => { Task.Delay(10000); Console.WriteLine(word); }));
-            }
+                story.ForEach(x => { Thread.Sleep(1000); Console.WriteLine(x); });
+            });
 
-            await Task.WhenAll(taskList);
+
+
+            await Task.WhenAll(task);
         }
 
         static async Task printConsole()
@@ -105,6 +105,7 @@ namespace AsyncSprint
             foreach (Task task in tasksScheduled)
             {
                 task.Start();
+                Console.WriteLine("Task started.");
             }
 
             await Task.WhenAll(tasksScheduled).ContinueWith(t =>
@@ -112,15 +113,15 @@ namespace AsyncSprint
                 List<BigInteger> result = t.Result.ToList();
                 foreach (BigInteger x in result)
                 {
-                    Console.WriteLine($"Today's big number: {x} \n\n\n\n\n\n\n" );
+                    Console.WriteLine($"Today's big number: {x} \n\n\n\n\n\n\n");
                 }
             });
         }
-            
-            
 
 
-        
+
+
+
 
 
     }
