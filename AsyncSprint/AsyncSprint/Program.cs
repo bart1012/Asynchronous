@@ -1,67 +1,86 @@
-﻿namespace AsyncSprint
+﻿using System.Numerics;
+
+namespace AsyncSprint
 {
     internal class Program
     {
         static async Task Main(string[] args)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            List<BigInteger> dataList = "85671 34262 92143 50984 24515 68356 77247 12348 56789 98760".Split(' ')
+                .Select(x => BigInteger.Parse(x)).ToList();
 
-            CancellationToken source = new CancellationToken();
-            await printConsole(source);
-            watch.Stop();
-            Console.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
+            await performCalculations(dataList);
+
         }
 
-        
 
-        static async Task printConsole(CancellationToken token)
+
+        static async Task printConsole()
         {
-            var timer = System.Diagnostics.Stopwatch.StartNew();
+            CancellationTokenSource source = new CancellationTokenSource();
+            var token = source.Token;
+            int timeout = 5000;
+            source.CancelAfter(timeout);
 
             Random random = new Random();
             int time1 = random.Next(10000);
+            Console.WriteLine(time1);
             int time2 = random.Next(10000);
-            
+            Console.WriteLine(time2);
 
-           
+
+
 
             var printHello = Task.Run(async () =>
             {
-                Thread.Sleep(time1);
-                Console.WriteLine("Hello...");   
-                
+                await Task.Delay(time1, token);
 
-            });
+                Console.WriteLine("Hello...");
+
+
+            }, token);
+
 
             var printWorld = Task.Run(async () =>
             {
-                Thread.Sleep(time2);
-                Console.WriteLine("...World");
-                token.Cancel();
-                
-            });
+                await Task.Delay(time2, token);
 
-            var cancelAfterTime = Task.Run(async () =>
+                Console.WriteLine("...World");
+
+            }, token);
+
+
+
+            var combinedResult = Task.WhenAll([printHello, printWorld]);
+
+            try
             {
-            
-                if (timer.ElapsedMilliseconds > 5000)
-                {
-                    source.Cancel();
-                    
-                }
-            });
-            while (!source.IsCancellationRequested)
-            {
-                try
-                {
-                    await Task.WhenAll([printHello, printWorld]);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
+                await combinedResult;
+
             }
-            
+            catch (OperationCanceledException e)
+            {
+                Console.WriteLine(e.Message);
+                source.Cancel();
+                source.Dispose();
+            }
+
+
         }
+
+        static async Task performCalculations(List<BigInteger> data)
+        {
+
+
+            foreach (var element in data)
+            {
+                var output = Exercises.CalculateFactorial(element);
+                Console.WriteLine(output);
+            }
+
+
+        }
+
+
     }
 }
