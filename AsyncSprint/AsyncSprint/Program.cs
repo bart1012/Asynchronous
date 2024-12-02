@@ -1,22 +1,36 @@
 ﻿using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading.Channels;
 
 namespace AsyncSprint
 {
     internal class Program
     {
+
         static async Task Main(string[] args)
         {
             List<BigInteger> dataList = "85671 34262 92143 50984 24515 68356 77247 12348 56789 98760".Split(' ')
                 .Select(x => BigInteger.Parse(x)).ToList();
 
-            await performCalculations(dataList);
+            List<string> story = "Mary had a little lamb, its fleece was white as snow.".Split(' ').ToList();
+
+            performCalculations(dataList);
             //await printConsole();
-            
-            
+
+            await readStory(story);
 
         }
 
+        static async Task readStory(List<string> story)
+        {
+            List<Task> taskList = [];
+            foreach (string word in story)
+            {
+                taskList.Add(Task.Run(async () => { Task.Delay(10000); Console.WriteLine(word); }));
+            }
 
+            await Task.WhenAll(taskList);
+        }
 
         static async Task printConsole()
         {
