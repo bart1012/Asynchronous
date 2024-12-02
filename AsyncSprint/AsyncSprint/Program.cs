@@ -10,6 +10,9 @@ namespace AsyncSprint
                 .Select(x => BigInteger.Parse(x)).ToList();
 
             await performCalculations(dataList);
+            //await printConsole();
+            
+            
 
         }
 
@@ -31,34 +34,38 @@ namespace AsyncSprint
 
 
 
-            var printHello = Task.Run(async () =>
+            var printHello = Task<string>.Run(async () =>
             {
                 await Task.Delay(time1, token);
 
-                Console.WriteLine("Hello...");
+                return "Hello...";
+                //Console.WriteLine("Hello...");
 
 
             }, token);
 
 
-            var printWorld = Task.Run(async () =>
+            var printWorld = Task<string>.Run(async () =>
             {
                 await Task.Delay(time2, token);
 
-                Console.WriteLine("...World");
+                return "...World";
+                //Console.WriteLine("...World");
 
             }, token);
 
 
 
-            var combinedResult = Task.WhenAll([printHello, printWorld]);
+            //var combinedResult = await Task.WhenAll([printHello, printWorld]);
 
             try
             {
-                await combinedResult;
+
+                Console.WriteLine(printHello.Result + printWorld.Result);
+                //await combinedResult;
 
             }
-            catch (OperationCanceledException e)
+            catch (TaskCanceledException e)
             {
                 Console.WriteLine(e.Message);
                 source.Cancel();
@@ -72,14 +79,34 @@ namespace AsyncSprint
         {
 
 
-            foreach (var element in data)
+            //var tasksScheduled = data.Select(x => new Task(() => {
+            //         Console.WriteLine(Exercises.CalculateFactorial(x));
+            //         })).ToList();
+            var tasksScheduled = data.Select(x => new Task<BigInteger>(() =>
             {
-                var output = Exercises.CalculateFactorial(element);
-                Console.WriteLine(output);
+                return (Exercises.CalculateFactorial(x));
+            })).ToList();
+
+
+            foreach (Task task in tasksScheduled)
+            {
+                task.Start();
             }
 
-
+            await Task.WhenAll(tasksScheduled).ContinueWith(t =>
+            {
+                List<BigInteger> result = t.Result.ToList();
+                foreach (BigInteger x in result)
+                {
+                    Console.WriteLine($"Today's big number: {x} \n\n\n\n\n\n\n" );
+                }
+            });
         }
+            
+            
+
+
+        
 
 
     }
